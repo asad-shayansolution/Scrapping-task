@@ -1,8 +1,8 @@
 const { default: puppeteer } = require("puppeteer");
 const fs = require("fs/promises");
-const URL = "https://www.zillow.com/homedetails/3405-Maceo-St-Los-Angeles-CA-90065/20756356_zpid/";
+const URL = require('./urls.js')
 
-(async ()=> {
+async function start(){
   // const browser = await puppeteer.launch();
   const browser = await puppeteer.launch({
     // Launch chromium using a proxy server on port 9876.
@@ -17,19 +17,29 @@ const URL = "https://www.zillow.com/homedetails/3405-Maceo-St-Los-Angeles-CA-900
     },
     headless: false,
     channel: "chrome",
-    // devtools: true,
-    args: ['--window-size=1920,1080', '--disable-notifications']
+    devtools: true,
+    args: [
+      '--window-size=1920,1080',
+      '--disable-notifications',
+      // '--proxy-server=103.58.16.5:4145',
+      // '--proxy-server=95.216.200.177',
+      '--load-extension',
+  ]
   });
 
+  for(let i=0; i<3; i++){
+
   const page = await browser.newPage();
-  const HTTPResponse = await page.goto(URL, {
+  const HTTPResponse = await page.goto(URL[0]
+    ,{
     // waitUntil: "domcontentloaded",
     // waitUntil: "DOMContentLoaded",
     // waitUntil: "load",
     // waitUntil: "networkidle2",
-  });
+  }
+  );
 
-  // await page.title()
+   console.log('title = ', await page.title())
     // await page.setViewport({width: 1080, height: 1024});
 
     // await page.waitForNetworkIdle({
@@ -50,11 +60,9 @@ const URL = "https://www.zillow.com/homedetails/3405-Maceo-St-Los-Angeles-CA-900
     //     return document.body
     // })
     // console.log('data = ', data)
-    await fs.writeFile("page.html", await HTTPResponse.text());
+    await fs.writeFile(`pages/page${i}.html`, await HTTPResponse.text());
 
-    await page.screenshot({ path: "image.png", fullPage: true });
-
-    // await page.close()
+    await page.screenshot({ path: `images/image${i}.png`, fullPage: true });
 
     // const data = await page.evaluate(
     //   () => [...document.querySelectorAll("article h3 a")].map(node=> node.textContent)
@@ -88,6 +96,9 @@ const URL = "https://www.zillow.com/homedetails/3405-Maceo-St-Los-Angeles-CA-900
   // }
   
     
-    await page.close()
-  await browser.close();
-})()
+    // await page.close()
+}
+  // await browser.close();
+}
+
+start()
