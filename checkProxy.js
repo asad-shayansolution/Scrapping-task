@@ -6,7 +6,8 @@ const  ProxyAgent  = require('proxy-agent');
 
 async function checkProxy(proxyUrl) {
   const proxyAgent = axios.create({
-    baseURL: 'https://example.com/',
+    // baseURL: 'https://example.com/',
+    baseURL: 'https://google.com/',
     httpAgent: new ProxyAgent(proxyUrl),
     httpsAgent: new ProxyAgent(proxyUrl)
   });
