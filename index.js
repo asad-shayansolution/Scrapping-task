@@ -4,6 +4,7 @@ const fs = require("fs/promises");
 const URL = require("./urls.js");
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+// const { scrollPageToBottom } = require("puppeteer-autoscroll-down");
 puppeteer.use(StealthPlugin());
 
 // const sleep = (ms)=> new Promise(resolve=> setTimeout(resolve, ms))
@@ -133,6 +134,11 @@ async function start() {
     //   console.log("sel content = ", await sel.evaluate(el=> el.textContent))
     //   await page.screenshot({ path: "page"+i+".jpg", fullPage: false });
     // }
+
+    // const lastPosition = await scrollPageToBottom(page, {
+        //   size: 500,
+        //   delay: 500,
+        // });
 
     // await page.close()
   }

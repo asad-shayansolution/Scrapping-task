@@ -1,7 +1,6 @@
 const URL = require("./urls.js");
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
-const fs = require("fs/promises");
 
 puppeteer.use(StealthPlugin());
 
@@ -14,28 +13,84 @@ async function start() {
       userDataDir: "C:/Users/shayan/AppData/Local/Google/Chrome/User Data/",
     });
 
-    const context = await browser.createIncognitoBrowserContext();
+    const page = await browser.newPage();
 
-    for (let i = 0; i < 10; i++) {
-      const page = await context.newPage();
-      const HTTPResponse = await page.goto(URL[i], {
-        timeout: 100000,
-      });
-
-      const title = await page.title();
-      console.log("title = ", title);
-
-      if (!title) i--;
-    // await page.waitForTimeout(10000);
-
-      const cookies = await page.cookies();
+    for (let i = 0; i < 1; i++) {
+      let cookies = await page.cookies();
       for (let cookie of cookies) {
         await page.deleteCookie(cookie);
       }
 
-      // await page.close();
+      const HTTPResponse = await page.goto(URL[i], {
+        waitUntil: "load",
+        waitUntil: "domcontentloaded",
+        timeout: 100000,
+      });
+
+      const status = await HTTPResponse.status();
+      const title = await page.title();
+
+      if (!title) {
+        i--;
+      } else if (status != 200) {
+        await page.reload({ timeout: 100000 });
+      }
+
+      console.log("title = ", title);
+
+      await page.waitForTimeout(5000);
+
+      let selector;
+
+      try {
+        selector = ".ds-close-lightbox-icon.hc-back-to-list";
+        await page.waitForSelector(selector);
+        await page.hover(selector);
+        await page.click(selector);
+        await page.waitForTimeout(5000);
+      } catch (error) {
+        console.log(error.message);
+      }
+
+      try {
+        selector =
+          ".PaginationReadoutItem-c11n-8-85-1__sc-18an4gi-0.blgxcD span";
+        const pagination = await page.$eval(selector, (el) => {
+          const text = el.innerText;
+          if (text) {
+            return text.split(" ");
+          }
+          return [];
+        });
+        let current_page = (total_pages = 0);
+        if (pagination.length == 4) {
+          current_page = +pagination[1];
+          total_pages = +pagination[3];
+        }
+
+        selector = ".PaginationList-c11n-8-85-1__sc-14rlw6v-0.dVmjCE";
+        for (; current_page <= total_pages; current_page++) {
+          await page.waitForTimeout(5000);
+          await page.waitForSelector(selector);
+          await page.$eval(selector, (el) => {
+            el.scrollIntoView();
+            return new Promise((resolve) =>
+              setTimeout(() => {
+                el.lastChild.firstChild.hover();
+                el.lastChild.firstChild.click();
+                resolve();
+              }, 5000)
+            );
+          });
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+
+      console.log("evaluation complete");
+      await page.close();
     }
-    //   await browser.close();
+    await browser.close();
   } catch (err) {
     console.log(err.message);
   }
